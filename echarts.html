@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdn.bootcss.com/echarts/4.1.0-release/echarts-en.common.js"></script>
+    <style>
+        *{
+            margin:0;
+            padding:0;
+        }
+    </style>
+</head>
+<body>
+    <div id="main" style="width: 1000px;height:600px;margin:0 auto;"></div>
+    <button type="button" onclick="save()">保存</button>
+    <script type="text/javascript">
+
+    var symbolSize = 12;
+    var data = [[0,0],[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9],[10,10],[11,11],[12,12],[13,13],[14,14],[15,15],[16,16],[17,17],[18,18],[19,19],[20,20],[21,21],[22,22],[23,23]];
+
+    var myChart = echarts.init(document.getElementById('main'));
+
+    myChart.setOption({
+        title: {
+            text: 'Try Dragging these Points'
+        },
+        tooltip: {
+            triggerOn: 'none',
+            formatter: function (params) {
+                return '时间: ' + parseInt(params.data[0]) + ':00<br>百分比: ' + parseInt(params.data[1]);
+            },
+            hideDelay:0
+        },
+        grid: {
+        },
+        xAxis: {
+            min: 0,
+            max: 23,
+            type: 'category',
+            splitNumber:1,
+            data:['00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00',],
+            axisLine: {
+                onZero: true,
+                symbol:['none','arrow']
+            },
+            axisLabel:{
+                interval:1
+            }
+        },
+        yAxis: {
+            min: 0,
+            max: 101,
+            splitNumber:10,
+            type: 'value',
+            axisLine: {
+                onZero: true,
+                symbol:['none','arrow'],
+                symbolOffset:[0,15]
+            }
+        },
+        series: [
+            {
+                id: 'a',
+                type: 'line',
+                smooth: true,
+                symbolSize: symbolSize,
+                data: data
+            }
+        ],
+    });
+    myChart.setOption({
+        graphic: echarts.util.map(data, function (item, dataIndex) {
+            return {
+                type: 'circle',
+                position: myChart.convertToPixel('grid', item),
+                shape: {
+                    cx: 0,
+                    cy: 0,
+                    r: symbolSize / 2
+                },
+                invisible: true,
+                draggable: true,
+                ondrag:echarts.util.curry(onPointDragging, dataIndex),
+                onmousemove: echarts.util.curry(showTooltip, dataIndex),
+                onmouseout: echarts.util.curry(hideTooltip, dataIndex),
+                z: 100
+            };
+
+        })
+    });
+
+    window.addEventListener('resize', function () {
+        myChart.setOption({
+            graphic: echarts.util.map(data, function (item, dataIndex) {
+                return {
+                    position: myChart.convertToPixel('grid', item)
+                };
+
+            })
+        });
+
+    });
+    function showTooltip(dataIndex) {
+        myChart.dispatchAction({
+            type: 'showTip',
+            seriesIndex: 0,
+            dataIndex: dataIndex
+        });
+    }
+
+    function hideTooltip(dataIndex) {
+        myChart.dispatchAction({
+            type: 'hideTip',
+            seriesIndex: 0,
+            dataIndex: dataIndex
+        });
+    }
+
+    function onPointDragging(dataIndex, dx, dy) {
+        data[dataIndex][1] = myChart.convertFromPixel('grid', this.position)[1];
+        if(data[dataIndex][1]>=100){
+            data[dataIndex][1]=100
+        }
+        if(data[dataIndex][1]<=0){
+            data[dataIndex][1]=0;
+        }
+        myChart.setOption({
+            series: [{
+                id: 'a',
+                data: data
+            }]
+        });
+        myChart.setOption({
+            graphic: echarts.util.map(data, function (item, dataIndex) {
+                return {
+                    position: myChart.convertToPixel('grid', item),
+                };
+            })
+        });
+    }
+    function save(){
+        //这里是保存
+        console.log(data)
+    }
+</script>
+</body>
+</html>
